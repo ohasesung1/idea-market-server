@@ -48,6 +48,12 @@ export default (sequelize, DataTypes) => {
       type: DataTypes.STRING(30),
       allowNull: false,
     },
+    updateDate: {
+      field: 'update_date',
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null,
+    },
     joinDate: {
       field: 'join_date',
       type: DataTypes.DATE,

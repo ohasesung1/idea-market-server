@@ -23,6 +23,24 @@ export const validateWriteItem = async (body) => {
   }
 };
 
+export const validateUpdateItem = async (body) => {
+  const schema = Joi.object().keys({
+    title: Joi.string().required(),
+    description: Joi.string().required(),
+    email: Joi.string().email().required(),
+    phone: Joi.string().required(),
+    category: Joi.string().required(),
+    price: Joi.string().required(),
+  });
+
+  // eslint-disable-next-line no-useless-catch
+  try {
+    return await schema.validateAsync(body);
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const vaildateMarketFile = async (body) => {
   const schema = Joi.object().keys({
     uploadName: Joi.string().required(),
