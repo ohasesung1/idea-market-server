@@ -10,7 +10,7 @@ export const validateWriteItem = async (body) => {
     email: Joi.string().email().required(),
     phone: Joi.string().required(),
     category: Joi.string().required(),
-    price: Joi.string().required(),
+    price: Joi.number().integer().required(),
     name: Joi.string().required(),
     picture: Joi.any(),
   });

@@ -54,5 +54,13 @@ export default (sequelize, DataTypes) => {
     raw: true,
   });
 
+  Member.getMyInfo = (id) => Member.findOne({
+    where: {
+      memberId: id,
+    },
+
+    raw: true,
+  });
+
   return Member;
 };

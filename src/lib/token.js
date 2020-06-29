@@ -11,7 +11,7 @@ export const createToken = async (memberId, accessLevel) => {
     memberId, accessLevel,
   };
 
-  const option = { expiresIn: '5 days', issuer: 'petition-site.com', subject: 'token' };
+  const option = { expiresIn: '5 days', issuer: 'brain-site.com', subject: 'token' };
 
   // eslint-disable-next-line no-useless-catch
   try {
@@ -26,7 +26,7 @@ export const createRefreshToken = async (memberId, accessLevel) => {
   const payload = {
     memberId, accessLevel,
   };
-  const option = { expiresIn: '7 days', issuer: 'petition-site.com', subject: 'refreshToken' };
+  const option = { expiresIn: '7 days', issuer: 'brain-site.com', subject: 'refreshToken' };
 
   // eslint-disable-next-line no-useless-catch
   try {

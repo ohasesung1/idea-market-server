@@ -87,8 +87,9 @@ export const writeItem = async (req, res) => {
 };
 
 export const getAllItemList = async (req, res) => {
-  const { page } = req.query;
+  const { page, category } = req.query;
   let { limit } = req.query;
+
 
   try {
     if (!limit || !page) {
@@ -105,21 +106,21 @@ export const getAllItemList = async (req, res) => {
     const requestPage = (page - 1) * limit;
     limit = Number(limit);
 
-    const market = await models.Market.getMarketList(requestPage, limit);
-    const marketAll = await models.Market.getAllMarketList();
-    const totalPage = Math.ceil(marketAll.length / limit);
+    const market = await models.Market.getMarketByCategory(requestPage, limit, category);
 
     await asyncForeach(market, async (value) => {
       const { idx } = value;
 
       const fileData = await models.MarketFile.getFiles(idx);
+      
+      if (fileData) {
+        await file.creatImageUrl(fileData);
 
-      await file.creatImageUrl(fileData);
-
-      if (fileData.length > 0) {
-        value.picture = fileData;
-      } else {
-        value.picture = null;
+        if (fileData.length > 0) {
+          value.picture = fileData;
+        } else {
+          value.picture = null;
+        }
       }
     });
 
@@ -128,7 +129,6 @@ export const getAllItemList = async (req, res) => {
       message: '아이템 전체 조회 성공!',
       data: {
         market,
-        totalPage,
       },
     };
 
@@ -154,6 +154,192 @@ export const updateMarketItem = async (req, res) => {
 
     res.status(200).json(result);
   } catch (error) {
+    const result = {
+      status: 500,
+      message: '서버 에러',
+    };
+
+    res.status(500).json(result);
+  }
+};
+
+export const getMyBasket = async (req, res) => {
+  const { memberId } = req.decoded;
+
+  try {
+    const market = await models.Basket.getBasket(memberId);
+
+    const basket = [];
+    
+    await asyncForeach(market, async (value) => {
+      const { marketIdx, idx } = value;
+      const marketData = await models.Market.getMarketByIdx(marketIdx);
+      
+      const fileData = await models.MarketFile.getFiles(marketData.idx);
+
+      if (fileData) {
+        await file.creatImageUrl(fileData);
+
+        if (fileData.length > 0) {
+          marketData.picture = fileData;
+        } else {
+          marketData.picture = null;
+        }
+      }
+
+      marketData.basketIdx = idx;
+
+      basket.push(marketData);
+    });
+
+    const result = {
+      status: 200,
+      message: '장바구니 목록 조회 성공!',
+      data: {
+        basket,
+      },
+    };
+
+    res.status(200).json(result);
+  } catch (error) {
+    colorConsole.red('[BASKET - GET - 요청 오류]', error);
+
+    const result = {
+      status: 500,
+      message: '서버 에러',
+    };
+
+    res.status(500).json(result);
+  }
+};
+
+export const addBasket = async (req, res) => {
+  const { marketIdx } = req.body;
+  const { memberId } = req.decoded;
+
+  try {
+    const basket = await models.Basket.findOne({
+      where: {
+        marketIdx,
+        memberId,
+      },
+
+      raw: true,
+    });
+
+    if (basket) {
+      const result = {
+        status: 400,
+        message: '이미 추가된 상품!',
+      };
+  
+      res.status(400).json(result);
+
+      return;
+    }
+
+    await models.Basket.create({
+      marketIdx,
+      memberId,
+    });
+
+    const result = {
+      status: 200,
+      message: '장바구니 추가 성공!',
+    };
+
+    res.status(200).json(result);
+  } catch (error) {
+    colorConsole.red('[BASKET - ADD - 요청 오류]', error);
+
+    const result = {
+      status: 500,
+      message: '서버 에러',
+    };
+
+    res.status(500).json(result);
+  }
+};
+
+export const deleteBasket = async (req, res) => {
+  const { idx } = req.query;
+
+  try {
+    await models.Basket.destroy({
+      where: {
+        idx,
+      },
+    });
+
+    const result = {
+      status: 200,
+      message: '장바구니 삭제 성공!',
+    };
+
+    res.status(200).json(result);
+  } catch (error) {
+    colorConsole.red('[BASKET - DELETE - 요청 오류]', error);
+
+    const result = {
+      status: 500,
+      message: '서버 에러',
+    };
+
+    res.status(500).json(result);
+  }
+};
+
+export const getMarketDetail = async (req, res) => {
+  const { idx } = req.query;
+
+  if (!idx) {
+    const result = {
+      status: 400,
+      message: 'idx를 지정하세요.',
+    };
+
+    res.status(400).json(result);
+
+    return;
+  }
+
+
+  try {
+    const market = await models.Market.getMarketByIdx(idx);
+    
+    const fileData = await models.MarketFile.getFiles(idx);
+
+    await file.creatImageUrl(fileData);
+
+    if (fileData.length > 0) {
+      market.picture = fileData;
+    } else {
+      market.picture = null;
+    }
+
+    if (!market) {
+      const result = {
+        status: 404,
+        message: '없는 게시글',
+      };
+  
+      res.status(404).json(result);
+
+      return;
+    }
+
+    const result = {
+      status: 200,
+      message: '상세조회 성공',
+      data: {
+        market,
+      },
+    };
+
+    res.status(200).json(result);
+  } catch (error) {
+    colorConsole.red('[DETAIL - GET - 요청 오류]', error);
+
     const result = {
       status: 500,
       message: '서버 에러',

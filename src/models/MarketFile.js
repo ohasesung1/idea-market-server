@@ -9,7 +9,7 @@ export default (sequelize, DataTypes) => {
     },
     /* foreign key - 마켓 게시물 idx */
     marketIdx: {
-      field: 'lostfound_idx',
+      field: 'market_idx',
       type: DataTypes.INTEGER,
       allowNull: false,
     },

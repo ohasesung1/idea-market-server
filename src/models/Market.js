@@ -20,7 +20,7 @@ export default (sequelize, DataTypes) => {
     },
     price: {
       field: 'price',
-      type: DataTypes.STRING(500),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     title: {
@@ -47,6 +47,12 @@ export default (sequelize, DataTypes) => {
       field: 'name',
       type: DataTypes.STRING(30),
       allowNull: false,
+    },
+    push: {
+      field: 'push',
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
     },
     updateDate: {
       field: 'update_date',
@@ -79,7 +85,58 @@ export default (sequelize, DataTypes) => {
     raw: true,
   });
 
+  Market.getMarketByCategory = (requestPage, limit, category) => {
+    if (category && category === 'push') {
+      return Market.findAll({
+        offset: requestPage,
+        limit,
+
+        order: [
+          ['push', 'DESC'],
+        ],
+    
+        raw: true,
+      });
+    }
+
+    if (category && category !== 'undefined') {
+      console.log('test2');
+      return Market.findAll({
+        offset: requestPage,
+        limit,
+
+        where: {
+          category,
+        },
+
+        order: [
+          ['joinDate', 'DESC'],
+        ],
+    
+        raw: true,
+      });
+    }
+    return Market.findAll({
+      offset: requestPage,
+      limit,
+
+      order: [
+        ['joinDate', 'DESC'],
+      ],
+  
+      raw: true,
+    });
+  };
+
   Market.getAllMarketList = () => Market.findAll({
+    raw: true,
+  });
+
+  Market.getMarketByIdx = (idx) => Market.findOne({
+    where: {
+      idx,
+    },
+
     raw: true,
   });
 
